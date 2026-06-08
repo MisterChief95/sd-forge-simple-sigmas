@@ -3,6 +3,8 @@
 
 Override sigma schedule parameters per generation in Stable Diffusion WebUI Forge.
 
+<img width="928" height="473" alt="image" src="https://github.com/user-attachments/assets/b535727d-025c-44cc-abd0-dbdcd1fca9d9" />
+
 ## Features
 
 - **Sigma min/max** — Clamp the noise schedule range directly on the model predictor. Compatible with all schedulers.
