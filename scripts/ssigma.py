@@ -109,75 +109,81 @@ class SimpleSigmas(scripts.Script):
                 "- **Beta schedule** — shapes the Beta scheduler's timestep distribution; "
                 "alpha/beta < 1 concentrates steps at the ends, > 1 concentrates in the middle."
             )
-            with gr.Row():
-                sigma_min = gr.Number(
-                    label="Sigma min (0 = model default)",
-                    value=0.0,
-                    minimum=0.0,
-                    precision=4,
-                )
-                sigma_max = gr.Number(
-                    label="Sigma max (0 = model default)",
-                    value=0.0,
-                    minimum=0.0,
-                    precision=4,
-                )
-            with gr.Row():
-                rho = gr.Number(
-                    label="Rho (Karras/Polyexponential)",
-                    value=0.0,
-                    minimum=0.0,
-                    precision=4,
-                )
+            with gr.Group():
+                with gr.Tab("Base"):
+                    with gr.Group():
+                        gr.Markdown("Sigma range")
+                        with gr.Row():
+                            sigma_min = gr.Number(
+                                label="Sigma min (0 = model default)",
+                                value=0.0,
+                                minimum=0.0,
+                                precision=4,
+                            )
+                            sigma_max = gr.Number(
+                                label="Sigma max (0 = model default)",
+                                value=0.0,
+                                minimum=0.0,
+                                precision=4,
+                            )
 
-            with gr.Accordion("Beta Schedule", open=False):
-                gr.Markdown(
-                    "Only active when the **Beta** scheduler is selected. "
-                    "**Value of `0` is ignored.**"
-                )
-                with gr.Row():
-                    beta_alpha = gr.Slider(
-                        label="Beta alpha",
-                        value=0.0,
-                        minimum=0.0,
-                        maximum=2.0,
-                        step=0.01,
-                    )
-                    beta_beta = gr.Slider(
-                        label="Beta beta",
-                        value=0.0,
-                        minimum=0.0,
-                        maximum=2.0,
-                        step=0.01,
-                    )
+                    with gr.Group():
+                        gr.Markdown("Karras / Polyexponential")
+                        with gr.Row():
+                            rho = gr.Number(
+                                label="Rho (0 = scheduler default)",
+                                value=0.0,
+                                minimum=0.0,
+                                precision=4,
+                            )
 
-            with gr.Accordion("Hires Fix overrides", open=False):
-                gr.Markdown(
-                    "When enabled, the values below replace the main values during the Hires Fix pass. "
-                    "Useful for using a tighter sigma range in the upscale pass. "
-                    "Set any value to 0 to fall back to the main value above."
-                )
-                hr_override = gr.Checkbox(label="Use separate values for Hires Fix", value=False)
-                with gr.Row():
-                    hr_sigma_min = gr.Number(
-                        label="Sigma min",
-                        value=0.0,
-                        minimum=0.0,
-                        precision=4,
-                    )
-                    hr_sigma_max = gr.Number(
-                        label="Sigma max",
-                        value=0.0,
-                        minimum=0.0,
-                        precision=4,
-                    )
-                with gr.Row():
-                    hr_rho = gr.Number(
-                        label="Rho",
-                        value=0.0,
-                        minimum=0.0,
-                        precision=4,
-                    )
+                    with gr.Group():
+                        gr.Markdown("Beta schedule")
+                        with gr.Row():
+                            beta_alpha = gr.Slider(
+                                label="Beta alpha (0 = scheduler default)",
+                                value=0.0,
+                                minimum=0.0,
+                                maximum=2.0,
+                                step=0.01,
+                            )
+                            beta_beta = gr.Slider(
+                                label="Beta beta (0 = scheduler default)",
+                                value=0.0,
+                                minimum=0.0,
+                                maximum=2.0,
+                                step=0.01,
+                            )
+
+                with gr.Tab("Hires Fix"):
+                    with gr.Group():
+                        hr_override = gr.Checkbox(label="Use separate values for Hires Fix", value=False)
+
+                    with gr.Group():
+                        gr.Markdown("Sigma range")
+                        with gr.Row():
+                            hr_sigma_min = gr.Number(
+                                label="Sigma min (0 = base value)",
+                                value=0.0,
+                                minimum=0.0,
+                                precision=4,
+                            )
+                            hr_sigma_max = gr.Number(
+                                label="Sigma max (0 = base value)",
+                                value=0.0,
+                                minimum=0.0,
+                                precision=4,
+                            )
+
+                    with gr.Group():
+                        gr.Markdown("Karras / Polyexponential")
+                        with gr.Row():
+                            hr_rho = gr.Number(
+                                label="Rho (0 = base value)",
+                                value=0.0,
+                                minimum=0.0,
+                                precision=4,
+                            )
 
         self.infotext_fields = [
             PasteField(enabled, "SS Enabled", api="ss_enabled"),
