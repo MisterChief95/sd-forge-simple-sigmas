@@ -58,7 +58,9 @@ class SimpleSigmas(scripts.Script):
             opts.data.update(**updates)
 
     @staticmethod
-    def _write_base_generation_params(p, sigma_min, sigma_max, rho, beta_alpha, beta_beta):
+    def _write_base_generation_params(
+        p, sigma_min, sigma_max, rho, beta_alpha, beta_beta
+    ):
         if sigma_min != 0:
             p.extra_generation_params["Schedule min sigma"] = sigma_min
             p.extra_generation_params["SS Sigma Min"] = sigma_min
@@ -74,7 +76,9 @@ class SimpleSigmas(scripts.Script):
             p.extra_generation_params["SS Beta Beta"] = beta_beta
 
     @staticmethod
-    def _write_hr_generation_params(p, sigma_min, sigma_max, rho, beta_alpha, beta_beta):
+    def _write_hr_generation_params(
+        p, sigma_min, sigma_max, rho, beta_alpha, beta_beta
+    ):
         if sigma_min != 0:
             p.extra_generation_params["SS HR Sigma Min"] = sigma_min
         if sigma_max != 0:
@@ -103,9 +107,10 @@ class SimpleSigmas(scripts.Script):
         A value of 0 for either bound means "keep the model default" and is skipped.
         """
         import torch
+
         predictor = unet.model.predictor
 
-        if hasattr(predictor, 'set_parameters'):
+        if hasattr(predictor, "set_parameters"):
             # EDM continuous: safe to rebuild the whole buffer
             new_min = sigma_min if sigma_min != 0 else predictor.sigma_min.item()
             new_max = sigma_max if sigma_max != 0 else predictor.sigma_max.item()
@@ -114,10 +119,14 @@ class SimpleSigmas(scripts.Script):
             # Discrete: only shift the endpoints, preserve interior
             s = predictor.sigmas
             if sigma_min != 0:
-                s[0] = torch.tensor(sigma_min, dtype=s.dtype, device=s.device).clamp(max=s[0])
+                s[0] = torch.tensor(sigma_min, dtype=s.dtype, device=s.device).clamp(
+                    max=s[0]
+                )
                 predictor.log_sigmas[0] = s[0].log()
             if sigma_max != 0:
-                s[-1] = torch.tensor(sigma_max, dtype=s.dtype, device=s.device).clamp(min=s[-1])
+                s[-1] = torch.tensor(sigma_max, dtype=s.dtype, device=s.device).clamp(
+                    min=s[-1]
+                )
                 predictor.log_sigmas[-1] = s[-1].log()
 
     def title(self):
@@ -196,7 +205,9 @@ class SimpleSigmas(scripts.Script):
                 else:
                     with gr.Tab("Hires Fix"):
                         with gr.Group():
-                            hr_override = gr.Checkbox(label="Use separate values for Hires Fix", value=False)
+                            hr_override = gr.Checkbox(
+                                label="Use separate values for Hires Fix", value=False
+                            )
 
                         with gr.Group():
                             gr.Markdown("Sigma range")
@@ -258,8 +269,21 @@ class SimpleSigmas(scripts.Script):
             PasteField(hr_beta_beta, "SS HR Beta Beta", api="ss_hr_beta_beta"),
         ]
 
-        return [enabled, sigma_min, sigma_max, rho, beta_alpha, beta_beta,
-                hr_override, hr_sigma_min, hr_sigma_max, hr_rho, hr_beta_alpha, hr_beta_beta, apply_base]
+        return [
+            enabled,
+            sigma_min,
+            sigma_max,
+            rho,
+            beta_alpha,
+            beta_beta,
+            hr_override,
+            hr_sigma_min,
+            hr_sigma_max,
+            hr_rho,
+            hr_beta_alpha,
+            hr_beta_beta,
+            apply_base,
+        ]
 
     def process_before_every_sampling(self, p, *script_args, **kwargs):
         if len(script_args) == 10:
@@ -267,8 +291,21 @@ class SimpleSigmas(scripts.Script):
         if len(script_args) == 12:
             script_args = (*script_args, True)
 
-        enabled, sigma_min, sigma_max, rho, beta_alpha, beta_beta, \
-            hr_override, hr_sigma_min, hr_sigma_max, hr_rho, hr_beta_alpha, hr_beta_beta, apply_base = script_args
+        (
+            enabled,
+            sigma_min,
+            sigma_max,
+            rho,
+            beta_alpha,
+            beta_beta,
+            hr_override,
+            hr_sigma_min,
+            hr_sigma_max,
+            hr_rho,
+            hr_beta_alpha,
+            hr_beta_beta,
+            apply_base,
+        ) = script_args
 
         if not enabled:
             return
@@ -279,9 +316,9 @@ class SimpleSigmas(scripts.Script):
         if is_hr and hr_override:
             _sigma_min = hr_sigma_min if hr_sigma_min != 0 else sigma_min
             _sigma_max = hr_sigma_max if hr_sigma_max != 0 else sigma_max
-            _rho       = hr_rho       if hr_rho       != 0 else rho
+            _rho = hr_rho if hr_rho != 0 else rho
             _beta_alpha = hr_beta_alpha if hr_beta_alpha != 0 else beta_alpha
-            _beta_beta  = hr_beta_beta  if hr_beta_beta  != 0 else beta_beta
+            _beta_beta = hr_beta_beta if hr_beta_beta != 0 else beta_beta
         else:
             _sigma_min, _sigma_max, _rho = sigma_min, sigma_max, rho
             _beta_alpha, _beta_beta = beta_alpha, beta_beta
@@ -300,20 +337,42 @@ class SimpleSigmas(scripts.Script):
         # Patch opts for rho and beta (restored in postprocess)
         on_script_unloaded(self._restore_opts)
         self._save_orig()
-        self._patch_opts(rho=_rho, beta_dist_alpha=_beta_alpha, beta_dist_beta=_beta_beta)
+        self._patch_opts(
+            rho=_rho, beta_dist_alpha=_beta_alpha, beta_dist_beta=_beta_beta
+        )
 
         # Write infotext — only non-zero values, using standard keys where applicable
         p.extra_generation_params["SS Enabled"] = True
         if not apply_base:
             p.extra_generation_params["SS Apply Base"] = False
         if apply_base:
-            self._write_base_generation_params(p, sigma_min, sigma_max, rho, beta_alpha, beta_beta)
+            self._write_base_generation_params(
+                p, sigma_min, sigma_max, rho, beta_alpha, beta_beta
+            )
         if is_hr and hr_override:
-            self._write_hr_generation_params(p, _sigma_min, _sigma_max, _rho, _beta_alpha, _beta_beta)
+            self._write_hr_generation_params(
+                p, _sigma_min, _sigma_max, _rho, _beta_alpha, _beta_beta
+            )
 
-    def postprocess(self, p, processed, enabled, sigma_min, sigma_max, rho, beta_alpha, beta_beta,
-                    hr_override, hr_sigma_min, hr_sigma_max, hr_rho, hr_beta_alpha, hr_beta_beta,
-                    apply_base=True, *args):
+    def postprocess(
+        self,
+        p,
+        processed,
+        enabled,
+        sigma_min,
+        sigma_max,
+        rho,
+        beta_alpha,
+        beta_beta,
+        hr_override,
+        hr_sigma_min,
+        hr_sigma_max,
+        hr_rho,
+        hr_beta_alpha,
+        hr_beta_beta,
+        apply_base=True,
+        *args,
+    ):
         remove_callbacks_for_function(self._restore_opts)
         if not enabled:
             return
